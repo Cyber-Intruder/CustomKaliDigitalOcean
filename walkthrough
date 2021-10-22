@@ -1,0 +1,40 @@
+Install Required Packages
+In order for DigitalOcean to configure the system for us, we need to install the cloud-init package:
+
+apt -y install cloud-init
+echo 'datasource_list: [ ConfigDrive, DigitalOcean, NoCloud, None ]' > /etc/cloud/cloud.cfg.d/99_digitalocean.cfg
+systemctl enable cloud-init
+Update GRUB
+When booting, the disk is attached and mapped as sda1. However, with the droplets, it is seen as vda1. To remedy this, we need to change all instances of sda1 to vda1 in /boot/grub/grub.cfg:
+
+sed -i 's/sda1/vda1/g' /boot/grub/grub.cfg
+With the configuration file updated, we can run ‘update-grub’ to update the system:
+
+update-grub
+Prepare for SSH
+Since we will need to use SSH to connect to the system on DigitalOcean, the openssh-server package needs to be installed (and enabled) as well:
+
+apt -y install openssh-server
+systemctl enable ssh.service
+When creating a standard droplet, you can choose to use SSH keys or not. However, when using custom images, this isn’t an option and using SSH keys is mandatory. For this reason, DigitalOcean requires us to remove the root password:
+
+passwd -d root
+We also need to create a /root/.ssh folder:
+
+mkdir /root/.ssh
+Cleanup
+Before we finish with our virtual machine, we run a few commands to clean things up:
+
+apt autoremove
+apt autoclean
+rm -rf /var/log/*
+history -c
+At this point, our virtual machine is ready so we run ‘poweroff’ to shutdown the system.
+
+poweroff
+
+
+After that, you need to compress the VDI or VMDK file, then, upload to Digital Ocean.
+
+
+Reference: https://www.kali.org/blog/kali-linux-in-the-digitalocean-cloud/
